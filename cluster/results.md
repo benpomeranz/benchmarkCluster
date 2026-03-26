@@ -80,18 +80,58 @@ Silhouette scores: Hierarchical 0.195, KMeans 0.221, Spectral 0.217.
 
 A new cluster emerges — **Factual Accuracy** — splitting off from the hard/unsaturated group. This is the best-separated partition (highest silhouette for Hierarchical and Spectral).
 
-| Cluster | Benchmarks (stable across methods) | Label |
-|---|---|---|
-| **Agentic/Applied** | apex_agents, chess_puzzles, gdpval, swe_bench_verified, terminalbench, webdev_arena | Task completion |
-| **Frontier Reasoning** | epoch_capabilities_index, geobench, gpqa_diamond, math_level_5, otis_mock_aime_2024_2025 | Broad frontier capability |
-| **Factual Accuracy** | deepresearchbench, lech_mazur_writing, simpleqa_verified | Factual precision |
-| **Hard/Unsaturated** | arc_agi, arc_agi_2, frontiermath, frontiermath_tier_4, gso, hle, metr_time_horizons, simplebench, swe_bench_bash, vpct, weirdml, fictionlivebench, aider_polyglot | Unsolved frontier |
+Silhouette scores: Hierarchical 0.242, KMeans 0.219, **Spectral 0.249** (best overall).
 
-**Interpretation.** The **Factual Accuracy** cluster (DeepResearchBench, Lech Mazur Writing, SimpleQA Verified) groups benchmarks that test whether a model produces **correct, well-sourced factual content** — research synthesis, factual writing quality, and verified factual QA. These split from the hard/unsaturated group because they measure precision of knowledge rather than novel reasoning.
+#### Per-method comparison
+
+**Hierarchical (Ward):**
+| Cluster | Benchmarks |
+|---|---|
+| Agentic/Applied | apex_agents, chess_puzzles, gdpval, swe_bench_verified, terminalbench, webdev_arena |
+| Frontier Reasoning | epoch_capabilities_index, geobench, gpqa_diamond, math_level_5, otis_mock_aime |
+| Factual Accuracy | deepresearchbench, lech_mazur_writing, simpleqa_verified |
+| Hard/Unsaturated | aider_polyglot, arc_agi, arc_agi_2, fictionlivebench, frontiermath, frontiermath_tier_4, gso, hle, metr_time_horizons, simplebench, swe_bench_bash, vpct, weirdml |
+
+**KMeans (10D MDS):**
+| Cluster | Benchmarks |
+|---|---|
+| Agentic/Applied | apex_agents, **arc_agi_2**, chess_puzzles, **deepresearchbench**, **frontiermath_tier_4**, gdpval, **gso**, swe_bench_verified, terminalbench, webdev_arena |
+| Frontier Reasoning | epoch_capabilities_index, geobench, gpqa_diamond, math_level_5, otis_mock_aime |
+| Factual Accuracy | lech_mazur_writing, simpleqa_verified |
+| Hard/Unsaturated | aider_polyglot, arc_agi, fictionlivebench, frontiermath, hle, metr_time_horizons, simplebench, swe_bench_bash, vpct, weirdml |
+
+**Spectral (precomputed similarity):**
+| Cluster | Benchmarks |
+|---|---|
+| Agentic/Applied | apex_agents, chess_puzzles, gdpval, swe_bench_verified, terminalbench, webdev_arena |
+| Frontier Reasoning | **aider_polyglot**, epoch_capabilities_index, geobench, gpqa_diamond, math_level_5, otis_mock_aime |
+| Factual Accuracy | deepresearchbench, lech_mazur_writing, simpleqa_verified |
+| Hard/Unsaturated | arc_agi, arc_agi_2, fictionlivebench, frontiermath, frontiermath_tier_4, gso, hle, metr_time_horizons, simplebench, swe_bench_bash, vpct, weirdml |
+
+(Bolded benchmarks differ from the other two methods.)
+
+#### Cross-method agreement
+
+Hierarchical and Spectral agree almost exactly — their only difference is that Spectral pulls aider_polyglot into Frontier Reasoning instead of Hard/Unsaturated. KMeans is the outlier: it absorbs arc_agi_2, frontiermath_tier_4, gso, and deepresearchbench into its Agentic cluster, likely because these benchmarks sit near the boundary in the 10D MDS embedding.
+
+The Spectral method achieves the highest silhouette score (0.249) and produces the cleanest separation. Its use of a precomputed similarity kernel (`exp(-dist / median_dist)`) preserves the structure of the original distance matrix more faithfully than MDS embedding followed by KMeans, which can distort distances during dimensionality reduction.
+
+#### Consensus clusters (member appears in that cluster in ≥2 of 3 methods)
+
+| Cluster | Benchmarks (bold = all three methods agree) | Label |
+|---|---|---|
+| **Agentic/Applied** | **apex_agents**, **chess_puzzles**, **gdpval**, **swe_bench_verified**, **terminalbench**, **webdev_arena** | Task completion |
+| **Frontier Reasoning** | **epoch_capabilities_index**, **geobench**, **gpqa_diamond**, **math_level_5**, **otis_mock_aime** | Broad frontier capability |
+| **Factual Accuracy** | deepresearchbench, **lech_mazur_writing**, **simpleqa_verified** | Factual precision |
+| **Hard/Unsaturated** | aider_polyglot, **arc_agi**, arc_agi_2, **fictionlivebench**, **frontiermath**, frontiermath_tier_4, gso, **hle**, **metr_time_horizons**, **simplebench**, **swe_bench_bash**, **vpct**, **weirdml** | Unsolved frontier |
+
+The Agentic/Applied and Frontier Reasoning clusters are perfectly stable — all 6 and all 5 members agree across every method. The Factual Accuracy cluster is stable at its core (lech_mazur_writing and simpleqa_verified always cluster together), with deepresearchbench joining in 2 of 3 methods. The Hard/Unsaturated cluster is the largest and has the most boundary cases: arc_agi_2, frontiermath_tier_4, and gso are pulled into the Agentic cluster by KMeans, and aider_polyglot is pulled into Frontier Reasoning by Spectral.
+
+#### Interpretation
+
+The **Factual Accuracy** cluster (DeepResearchBench, Lech Mazur Writing, SimpleQA Verified) groups benchmarks that test whether a model produces **correct, well-sourced factual content** — research synthesis, factual writing quality, and verified factual QA. These split from the hard/unsaturated group because they measure precision of knowledge rather than novel reasoning.
 
 The **Hard/Unsaturated** cluster still contains a mix of novel reasoning (ARC-AGI, FrontierMath), agentic coding (SWE-bench Bash, Aider), long-horizon tasks (METR, FictionLiveBench), and adversarial/unusual evaluations (WeirdML, SimpleBench, VPCT). The common thread is that frontier models have not saturated these benchmarks, and performance on them does not strongly predict performance on the Frontier Reasoning benchmarks.
-
-Silhouette scores: Hierarchical 0.242, KMeans 0.219, Spectral 0.249.
 
 ---
 
